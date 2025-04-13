@@ -1,0 +1,9 @@
+[Desktop Entry]
+Version=1.0
+Name=Securonis Notes
+Comment=Securonis Notes stores your notes securely and encrypted
+Exec=pkexec notesgui
+Icon=/usr/share/icons/securonis/icon8.png
+Terminal=false 
+Type=Application
+Categories=Securonis;Securonis;

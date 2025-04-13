@@ -1,0 +1,9 @@
+[Desktop Entry]
+Version=1.0
+Name=Netxtrack
+Comment=Network packet sniffer analysis tool
+Exec=netxtrack
+Icon=/usr/share/icons/securonis/icon17.png
+Terminal=false 
+Type=Application
+Categories=Qt;System;

@@ -1,0 +1,9 @@
+[Desktop Entry]
+Version=1.0
+Name=PxrtalCrypt
+Comment=Encrypt Toolkit for Securonis Linux
+Exec=pxrtalcrypt 
+Icon=/usr/share/icons/securonis/pxrtalicon.png
+Terminal=false 
+Type=Application
+Categories=Securonis;Securonis;

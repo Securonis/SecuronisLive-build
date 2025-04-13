@@ -1,0 +1,9 @@
+[Desktop Entry]
+Version=1.0
+Name=VesperaCrypt
+Comment=Simple and easy file encryption tool for Securonis Linux
+Exec=vesperacrypt 
+Icon=/usr/share/icons/securonis/vespera.png
+Terminal=false 
+Type=Application
+Categories=Securonis;Securonis;

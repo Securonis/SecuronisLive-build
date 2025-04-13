@@ -1,0 +1,9 @@
+[Desktop Entry]
+Version=1.0
+Name=Anonymous Mode
+Comment=Start, Stop, or Check Status of Anonymous Mode
+Exec=pkexec anonmode
+Icon=/usr/share/icons/securonis/icon1.png
+Terminal=false
+Type=Application
+Categories=Securonis;Securonis;

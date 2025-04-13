@@ -1,0 +1,9 @@
+[Desktop Entry]
+Version=1.0
+Name=Password Manager
+Comment=Password Manager securely stores and manages passwords
+Exec=pkexec passmanager
+Icon=/usr/share/icons/securonis/icon5.png
+Terminal=false 
+Type=Application
+Categories=Securonis;Securonis;

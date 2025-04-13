@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Name=Securonis System Control Panel
+Comment=GUI System control panel for Securonis Linux
+Exec=controlpanelgui
+Icon=/usr/share/icons/securonis/icon16.png
+Terminal=false 
+Type=Application
+Categories=Securonis;Securonis;
+

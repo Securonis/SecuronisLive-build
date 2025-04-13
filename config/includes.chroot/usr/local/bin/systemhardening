@@ -1,0 +1,259 @@
+#!/bin/bash
+
+# Securonis Linux - System and Kernel Hardening
+# Developer : root0emir
+
+
+# this script need a root permission
+if [[ $EUID -ne 0 ]]; then
+   echo "!-This script requires root permissions. Please run it with 'sudo'." 
+   exit 1
+fi
+
+# ASCII Art Function
+ascii_art() {
+    cat << "EOF"
+
+░█▀▀░█▀▀░█▀▀░█░█░█▀▄░█▀█░█▀█░▀█▀░█▀▀
+░▀▀█░█▀▀░█░░░█░█░█▀▄░█░█░█░█░░█░░▀▀█
+░▀▀▀░▀▀▀░▀▀▀░▀▀▀░▀░▀░▀▀▀░▀░▀░▀▀▀░▀▀▀
+░█▀▀░█░█░█▀▀░▀█▀░█▀▀░█▄█            
+░▀▀█░░█░░▀▀█░░█░░█▀▀░█░█            
+░▀▀▀░░▀░░▀▀▀░░▀░░▀▀▀░▀░▀            
+░█░█░█▀█░█▀▄░█▀▄░█▀▀░█▀█░▀█▀░█▀█░█▀▀
+░█▀█░█▀█░█▀▄░█░█░█▀▀░█░█░░█░░█░█░█░█
+░▀░▀░▀░▀░▀░▀░▀▀░░▀▀▀░▀░▀░▀▀▀░▀░▀░▀▀▀
+ 
+EOF
+}
+
+# Menu Function
+menu() {
+    ascii_art
+    echo -e "\e[32m[Securonis Linux - System and Kernel Hardening]\e[0m"
+    echo "1) Enable System Hardening"
+    echo "2) Restore Default Kernel Settings"
+    echo "3) Enable AppArmor"
+    echo "4) Disable AppArmor"
+    echo "5) Enable SELinux"
+    echo "6) Disable SELinux"
+    echo "7) Disable System Logs"
+    echo "8) Enable System Logs"
+    echo "9) Enable MACsec Encryption"
+    echo "10) Disable MACsec Encryption"
+    echo "11) Enable Firewall"
+    echo "12) Disable Firewall"
+    echo "13) Exit"
+}
+
+# Enable System Hardening
+enable_system_hardening() {
+    echo "[+] Kernel Hardening is Starting..."
+    echo "[*] This script developed by root0emir"
+
+    # Kernel-level security settings
+    cat <<EOF > /etc/sysctl.d/99-securonis-hardening.conf
+# IPv4 Network Security
+net.ipv4.conf.all.rp_filter = 1  # Enable reverse path filtering
+net.ipv4.conf.default.rp_filter = 1
+net.ipv4.conf.all.accept_source_route = 0  # Disable source routing
+net.ipv4.conf.default.accept_source_route = 0
+net.ipv4.conf.all.accept_redirects = 0  # Disable ICMP redirects
+net.ipv4.conf.default.accept_redirects = 0
+net.ipv4.conf.all.log_martians = 1  # Log suspicious packets
+net.ipv4.conf.default.log_martians = 1
+net.ipv4.icmp_echo_ignore_broadcasts = 1  # Ignore ICMP broadcast requests
+net.ipv4.icmp_ignore_bogus_error_responses = 1  # Ignore bogus ICMP errors
+net.ipv4.tcp_syncookies = 1  # Enable SYN flood protection
+net.ipv4.tcp_max_syn_backlog = 2048  # Increase SYN backlog size
+
+# Disable IPv6 (Enable if needed)
+net.ipv6.conf.all.disable_ipv6 = 1
+net.ipv6.conf.default.disable_ipv6 = 1
+
+# Memory Protection
+kernel.randomize_va_space = 2  # Enable ASLR (Address Space Layout Randomization)
+vm.mmap_min_addr = 65536       # Prevent mapping to low memory addresses
+
+#  Kernel Security
+kernel.kptr_restrict = 2        # Hide kernel pointers
+kernel.dmesg_restrict = 1       # Restrict dmesg access
+kernel.unprivileged_bpf_disabled = 1  # Disable unprivileged BPF
+kernel.yama.ptrace_scope = 2    # Restrict process tracing
+fs.protected_hardlinks = 1      # Enable hardlink protection
+fs.protected_symlinks = 1       # Enable symlink protection
+EOF
+
+    # Apply settings
+    sysctl --system
+
+    # Restrict module loading
+    echo "install usb-storage /bin/false" | tee -a /etc/modprobe.d/secure.conf
+    echo "install firewire-core /bin/false" | tee -a /etc/modprobe.d/secure.conf
+    echo "install cramfs /bin/false" | tee -a /etc/modprobe.d/secure.conf
+    echo "install freevxfs /bin/false" | tee -a /etc/modprobe.d/secure.conf
+
+    echo "[+] Kernel Hardening Completed."
+}
+
+# Restore Default Kernel Settings
+restore_default_kernel_settings() {
+    echo "[!] Restoring default kernel settings..."
+    # Remove custom hardening settings
+    rm -f /etc/sysctl.d/99-securonis-hardening.conf
+    rm -f /etc/modprobe.d/secure.conf
+
+    # Apply default settings
+    sysctl --system
+
+    echo "[✔] Default kernel settings have been restored!"
+}
+
+# Enable AppArmor
+enable_apparmor() {
+    echo "[+] Enabling AppArmor..."
+    systemctl start apparmor
+    systemctl enable apparmor
+    if command -v aa-enforce &> /dev/null; then
+        aa-enforce /etc/apparmor.d/*
+        echo "[✔] AppArmor has been enabled and configured!"
+    else
+        echo "AppArmor tools are not installed. Please install AppArmor tools first."
+    fi
+}
+
+# Disable AppArmor
+disable_apparmor() {
+    echo "[!] Disabling AppArmor..."
+    systemctl stop apparmor
+    systemctl disable apparmor
+    if command -v aa-disable &> /dev/null; then
+        aa-disable /etc/apparmor.d/*
+        echo "[✔] AppArmor has been disabled!"
+    else
+        echo "AppArmor tools are not installed."
+    fi
+}
+
+# Enable SELinux
+enable_selinux() {
+    echo "[+] Enabling SELinux..."
+    if [ -f /etc/selinux/config ]; then
+        setenforce 1
+        sed -i 's/SELINUX=disabled/SELINUX=enforcing/' /etc/selinux/config
+        echo "[✔] SELinux has been enabled!"
+    else
+        echo "SELinux is not installed! Would you like to install SELinux? (y/n)"
+        read -r install_selinux
+        if [ "$install_selinux" == "y" ]; then
+            apt-get install -y selinux-utils selinux-basics
+            selinux-activate
+            echo "SELinux has been installed and activated. Please reboot for changes to take effect."
+        fi
+    fi
+}
+
+# Disable SELinux
+disable_selinux() {
+    echo "[!] Disabling SELinux..."
+    if [ -f /etc/selinux/config ]; then
+        setenforce 0
+        sed -i 's/SELINUX=enforcing/SELINUX=disabled/' /etc/selinux/config
+        echo "[✔] SELinux has been disabled! System reboot is recommended for changes to take full effect."
+    else
+        echo "SELinux is not installed."
+    fi
+}
+
+# Disable System Logs
+disable_system_logs() {
+    echo "[!] Disabling system logs..."
+    systemctl stop rsyslog
+    systemctl disable rsyslog
+    systemctl stop systemd-journald
+    systemctl disable systemd-journald
+
+    # Clear existing logs
+    rm -rf /var/log/*
+    journalctl --vacuum-time=1s
+
+    echo "[✔] System logs have been disabled!"
+}
+
+# Enable System Logs
+enable_system_logs() {
+    echo "[+] Enabling system logs..."
+    systemctl start rsyslog
+    systemctl enable rsyslog
+    systemctl start systemd-journald
+    systemctl enable systemd-journald
+
+    echo "[✔] System logs have been enabled!"
+}
+
+# Enable MACsec Encryption
+enable_macsec() {
+    read -p "Enter network interface (e.g., eth0): " interface
+    read -p "Enter MACsec key: " macsec_key
+
+    # Install required packages
+    apt-get install -y iproute2
+
+    # Enable MACsec
+    ip link add link $interface macsec0 type macsec
+    ip macsec add macsec0 tx sa 0 pn 1 on key 00 $macsec_key
+    ip link set macsec0 up
+
+    echo "[✔] MACsec Encryption enabled on $interface"
+}
+
+# Disable MACsec Encryption
+disable_macsec() {
+    read -p "Enter network interface (e.g., eth0): " interface
+
+    # Disable MACsec
+    ip link set macsec0 down
+    ip link del macsec0
+
+    echo "[✔] MACsec Encryption disabled on $interface"
+}
+
+# Enable Firewall
+enable_firewall() {
+    echo "[+] Enabling firewall..."
+    sudo ufw enable
+    echo "[✔] Firewall enabled!"
+}
+
+# Disable Firewall
+disable_firewall() {
+    echo "[!] Disabling firewall..."
+    sudo ufw disable
+    echo "[✔] Firewall disabled!"
+}
+
+# Main Menu Loop
+while true; do
+    menu
+    read -p "Enter your choice: " choice
+
+    case $choice in
+        1) enable_system_hardening ;;
+        2) restore_default_kernel_settings ;;
+        3) enable_apparmor ;;
+        4) disable_apparmor ;;
+        5) enable_selinux ;;
+        6) disable_selinux ;;
+        7) disable_system_logs ;;
+        8) enable_system_logs ;;
+        9) enable_macsec ;;
+        10) disable_macsec ;;
+        11) enable_firewall ;;
+        12) disable_firewall ;;
+        13) echo "Exiting..."; exit 0 ;;
+        *) echo "Invalid choice! Please select a valid option.";;
+    esac
+
+    echo -e "\nPress any key to continue..."
+    read -n 1 -s -r
+done

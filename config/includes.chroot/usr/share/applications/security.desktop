@@ -1,0 +1,9 @@
+[Desktop Entry]
+Version=1.0
+Name=Security Scan
+Comment=Malware,rootkit scanning tool
+Exec=securitygui
+Icon=/usr/share/icons/securonis/icon6.png
+Terminal=false
+Type=Application
+Categories=Securonis;Securonis;

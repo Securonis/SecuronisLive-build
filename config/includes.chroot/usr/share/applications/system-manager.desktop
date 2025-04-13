@@ -1,0 +1,9 @@
+[Desktop Entry]
+Version=1.0
+Name=System Manager
+Comment=System manager for Securonis Linux
+Exec=pkexec system-manager
+Icon=/usr/share/icons/securonis/icon7.png
+Terminal=false 
+Type=Application
+Categories=Securonis;Securonis;

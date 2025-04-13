@@ -1,0 +1,9 @@
+[Desktop Entry]
+Version=1.0
+Name=I2P Router Menu
+Comment=I2P Router GUI Menu
+Exec=i2p-routermenu
+Icon=/usr/share/icons/securonis/icon14.png
+Terminal=false
+Type=Application
+Categories=Securonis;Securonis;

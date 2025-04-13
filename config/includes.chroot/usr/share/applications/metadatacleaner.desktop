@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Name=Securonis Metadata Cleaner
+Comment=Metadata Cleaner for Securonis Linux
+Exec=metadatacleaner
+Icon=/usr/share/icons/securonis/metadata.png
+Terminal=false 
+Type=Application
+Categories=Utility;
+

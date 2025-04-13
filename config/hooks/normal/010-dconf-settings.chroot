@@ -1,0 +1,16 @@
+#!/bin/bash
+set -e
+
+echo "[+] Derlenmiş dconf veritabanı oluşturuluyor..."
+
+# Gerekli dizinleri oluştur
+mkdir -p /etc/dconf/db/local.d
+mkdir -p /etc/skel/.config/dconf
+
+# NOT: securonis-skel dosyasının zaten /etc/dconf/db/local.d/ içinde olduğunu varsayıyoruz
+
+# Veritabanını derle
+dconf compile /etc/skel/.config/dconf/user /etc/dconf/db/local.d
+
+# Sisteme uygula
+dconf update
