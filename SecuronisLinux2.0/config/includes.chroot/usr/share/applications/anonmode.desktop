@@ -1,7 +1,7 @@
 [Desktop Entry]
 Version=1.0
 Name=Anonymous Mode
-Comment=Start, Stop, or Check Status of Anonymous Mode
+Comment=Alternative Tor traffic router for Securonis Linux
 Exec=pkexec anonmode
 Icon=/usr/share/icons/securonis/icon1.png
 Terminal=false

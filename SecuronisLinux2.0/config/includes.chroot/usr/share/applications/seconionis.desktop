@@ -1,7 +1,7 @@
 [Desktop Entry]
 Version=1.0
 Name=Seconionis
-Comment=Tor Traffic Router for Securonis Linux
+Comment=Seconionis is a tool that forces all system traffic through the Tor network by using a Tor transparent proxy
 Exec=pkexec seconionismenu
 Icon=/usr/share/icons/securonis/icon15.png
 Terminal=false
