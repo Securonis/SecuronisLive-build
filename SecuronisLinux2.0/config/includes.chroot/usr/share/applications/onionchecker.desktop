@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=Onion Checker 
+Comment=Monitor Tor circuits and connections
+Exec=pkexec onionchecker
+StartupNotify=true
+Terminal=false
+Type=Application
+Icon=/usr/share/icons/securonis/node.png
+Categories=GTK;Network;
+

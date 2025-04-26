@@ -1,0 +1,9 @@
+PRETTY_NAME="Securonis Linux"
+NAME="Securonis"
+ID=debian
+ID_LIKE=debian
+CODENAME=arise
+DEVELOPER="root0emir" 
+VERSION="2.0"
+VERSION_ID="2.0"
+HOME_URL="https://securonis.github.io"  # 

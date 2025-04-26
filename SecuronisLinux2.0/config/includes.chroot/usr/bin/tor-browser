@@ -1,0 +1,44 @@
+#!/bin/sh
+# Copyright (c) Tails Developers
+# Copyright (c) Ivan J. <parazyd@dyne.org>
+
+export PATH="/usr/local/bin:/usr/bin:/bin"
+
+set -e
+set -u
+
+PROFILE="${HOME}/.tor-browser/profile.default"
+
+TBB_INSTALL=/usr/lib/tor-browser
+TBB_PROFILE=/etc/tor-browser/profile
+
+export TOR_SOCKS_HOST='127.0.0.1'
+export TOR_SOCKS_PORT='9150'
+export TOR_CONTROL_PASSWD='passwd'
+export TOR_NO_DISPLAY_NETWORK_SETTINGS='yes'
+
+exec_firefox() {
+	export LD_LIBRARY_PATH="$TBB_INSTALL"
+	export FONTCONFIG_PATH="$TBB_INSTALL/TorBrowser/Data/fontconfig"
+	export FONTCONFIG_FILE="fonts.conf"
+
+	cd "$TBB_INSTALL"
+
+	# From start-tor-browser
+	unset SESSION_MANAGER
+
+	exec "$TBB_INSTALL/firefox" "${@}"
+}
+
+start_browser() {
+	if [ ! -d "$PROFILE" ]; then
+		mkdir -p "$(dirname $PROFILE)"
+		cp -a "$TBB_PROFILE" "$PROFILE"
+	fi
+
+	TMPDIR="$PROFILE/tmp"
+	mkdir --mode=0700 -p "$TMPDIR"
+	export TMPDIR
+
+	exec_firefox -allow-remote --class "Tor Browser" -profile "$PROFILE" "$@"
+}

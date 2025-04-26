@@ -1,0 +1,9 @@
+[Desktop Entry]
+Version=1.0
+Name=OpenMammoth
+Comment=OpenMammoth Securonis Edition Network Defense Toolkit
+Exec=mate-terminal -- bash -c "sudo /usr/local/bin/openmammoth; exec bash"
+Icon=/usr/share/icons/securonis/openmammoth.png
+Terminal=true
+Type=Application
+Categories=Qt;System;

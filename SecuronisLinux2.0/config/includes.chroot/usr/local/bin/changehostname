@@ -1,0 +1,29 @@
+#!/bin/bash
+
+# Check if running as root
+if [ "$EUID" -ne 0 ]; then 
+    echo "Please run as root"
+    exit 1
+fi
+
+# Get current hostname
+current_hostname=$(hostname)
+echo "Current hostname: $current_hostname"
+
+# Ask for new hostname
+read -p "Enter new hostname: " new_hostname
+
+# Validate hostname
+if [[ ! $new_hostname =~ ^[a-zA-Z0-9][a-zA-Z0-9-]{0,61}[a-zA-Z0-9]$ ]]; then
+    echo "Invalid hostname format"
+    exit 1
+fi
+
+# Change hostname
+hostnamectl set-hostname "$new_hostname"
+
+# Update /etc/hosts
+sed -i "s/$current_hostname/$new_hostname/g" /etc/hosts
+
+echo "Hostname has been changed to: $new_hostname"
+echo "Please restart your system for changes to take effect."

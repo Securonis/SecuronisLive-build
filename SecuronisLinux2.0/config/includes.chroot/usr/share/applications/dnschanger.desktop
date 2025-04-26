@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=SecDNSChanger 
+Comment=Simple DNS address changer tool
+Exec=dnschanger
+StartupNotify=true
+Terminal=false
+Type=Application
+Icon=/usr/share/icons/securonis/dnschanger.png
+Categories=GTK;Network;

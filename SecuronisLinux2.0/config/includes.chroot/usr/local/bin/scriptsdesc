@@ -1,0 +1,52 @@
+#!/bin/bash
+
+# scriptdesc - Descriptions of Securonis Linux scripts and applications
+
+declare -A descriptions=(
+  [about]="Displays information about Securonis Linux."
+  [anonmode]="Forces all system traffic through the Tor network. An alternative Tor router."
+  [antimitm]="Detects and defends against man-in-the-middle attacks."
+  [changedns]="Script that allows changing DNS servers."
+  [changehostname]="Changes the system hostname."
+  [controlpanel]="System control panel via CLI."
+  [controlpanelgui]="GUI-based control panel interface."
+  [delete]="Securely deletes specified files or directories."
+  [donate]="Provides links to donate to the Securonis project."
+  [escapewizard]="Simple tool to clean system traces."
+  [filemanagement]="Script to manage files and directories." 
+  [i2p-routermenu]="I2P router configuration menu."
+  [i2p-routermenucli]="I2P router configuration via CLI."
+  [info]="Links to Securonis Linux forums and wiki."
+  [install-nvidia-driver]="Allows you to install or manage NVIDIA drivers."
+  [ipcheck]="Displays your IP address information."
+  [livesettings]="Allows changing keyboard and time settings in live mode."
+  [metadatacleaner]="GUI tool to clean metadata from files."
+  [netraffic]="Basic script to monitor and detect network traffic."
+  [netxtrack]="GUI tool for network traffic monitoring and packet analysis."
+  [notesgui]="Note-taking and storage tool. Allows taking encrypted notes."
+  [onionchecker]="Graphically displays your Tor nodes."
+  [openmammoth]="Network Defense Toolkit."
+  [panicmodegui]="Emergency tool offering system/network info, security settings, trace removal, and system destruction options."
+  [passmanager]="Tool to store and manage passwords."
+  [pxrtalcrypt]="File encryption toolkit."
+  [quick-usbkitgui]="GUI tool providing USB stick features and controls."
+  [scriptsdesc]="This script that explains the purpose of all tools."
+  [seconionismenu]="Advanced Tor router that forces all traffic through the Tor network."
+  [securonislogo]="Displays the Securonis logo in the terminal."
+  [securonisdnscrypt]="Script that facilitates DNSCrypt usage."
+  [systemknight]="CLI system security scanning tool."
+  [symonitoring]="Script to monitor system resources and performance."
+  [system-manager]="GUI tool for system info and updates."
+  [systemhardening]="Allows kernel and network hardening with additional security tweaks."
+  [timespoof]="Script to spoof date and time settings." 
+  [torifycheck]="Checks whether all traffic is routed through the Tor network."
+  [update]="Securonis system update script."
+  [vesperacrypt]="Simple tool for file encryption."
+  [dnschanger]="GUI DNS changer tool"
+)
+
+echo "Securonis Linux Script-Tools Descriptions"
+echo "-----------------------------------------"
+for script in "${!descriptions[@]}"; do
+  printf "%-20s: %s\n" "$script" "${descriptions[$script]}"
+done

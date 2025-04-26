@@ -1,0 +1,948 @@
+#!/usr/bin/env python3
+import sys
+import os
+from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
+                           QPushButton, QFileDialog, QLabel, QMessageBox, QTabWidget,
+                           QTextEdit, QLineEdit, QComboBox, QSpinBox, QCheckBox,
+                           QGroupBox, QFormLayout, QDialog, QDialogButtonBox, QFrame)
+from PyQt5.QtGui import QPixmap, QIcon, QPalette, QColor, QFont
+from PyQt5.QtCore import Qt, QTimer
+from cryptography.fernet import Fernet
+import hashlib
+import json
+import base64
+from datetime import datetime
+
+
+STYLE = """
+QMainWindow {
+    background-color: #1e1e1e;
+}
+
+QWidget {
+    background-color: #1e1e1e;
+    color: #ffffff;
+    font-family: 'Segoe UI', Arial, sans-serif;
+}
+
+QTabWidget::pane {
+    border: 1px solid #2d2d2d;
+    background-color: #1e1e1e;
+}
+
+QTabBar::tab {
+    background-color: #2d2d2d;
+    color: #ffffff;
+    padding: 8px 20px;
+    border: none;
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
+}
+
+QTabBar::tab:selected {
+    background-color: #0078d4;
+}
+
+QGroupBox {
+    border: 1px solid #2d2d2d;
+    border-radius: 6px;
+    margin-top: 10px;
+    padding-top: 15px;
+    font-weight: bold;
+}
+
+QGroupBox::title {
+    subcontrol-origin: margin;
+    left: 10px;
+    padding: 0 5px;
+}
+
+QPushButton {
+    background-color: #0078d4;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    font-weight: bold;
+}
+
+QPushButton:hover {
+    background-color: #106ebe;
+}
+
+QPushButton:pressed {
+    background-color: #005a9e;
+}
+
+QLineEdit, QTextEdit {
+    background-color: #2d2d2d;
+    border: 1px solid #3d3d3d;
+    border-radius: 4px;
+    padding: 5px;
+    color: #ffffff;
+}
+
+QLineEdit:focus, QTextEdit:focus {
+    border: 1px solid #0078d4;
+}
+
+QLabel {
+    color: #ffffff;
+}
+
+QMessageBox {
+    background-color: #1e1e1e;
+}
+
+QMessageBox QLabel {
+    color: #ffffff;
+}
+
+QMessageBox QPushButton {
+    min-width: 80px;
+}
+"""
+
+class PasswordManagerDialog(QDialog):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("Password Manager")
+        self.setGeometry(200, 200, 600, 500)
+        self.setStyleSheet(STYLE)
+        
+        layout = QVBoxLayout(self)
+        
+        # Password list
+        self.password_list = QTextEdit()
+        self.password_list.setReadOnly(True)
+        self.password_list.setStyleSheet("""
+            QTextEdit {
+                background-color: #2d2d2d;
+                border: 1px solid #3d3d3d;
+                border-radius: 4px;
+                padding: 10px;
+                font-family: 'Consolas', monospace;
+            }
+        """)
+        layout.addWidget(self.password_list)
+        
+        # Form layout
+        form_layout = QFormLayout()
+        self.service_input = QLineEdit()
+        self.username_input = QLineEdit()
+        self.password_input = QLineEdit()
+        self.password_input.setEchoMode(QLineEdit.Password)
+        
+        form_layout.addRow("Service:", self.service_input)
+        form_layout.addRow("Username:", self.username_input)
+        form_layout.addRow("Password:", self.password_input)
+        
+        layout.addLayout(form_layout)
+        
+        # Buttons
+        buttons_layout = QHBoxLayout()
+        
+        save_button = QPushButton("Save")
+        save_button.clicked.connect(self.save_password)
+        buttons_layout.addWidget(save_button)
+        
+        show_button = QPushButton("Show Password")
+        show_button.clicked.connect(self.show_password)
+        buttons_layout.addWidget(show_button)
+        
+        clear_button = QPushButton("Clear")
+        clear_button.clicked.connect(self.clear_form)
+        buttons_layout.addWidget(clear_button)
+        
+        close_button = QPushButton("Close")
+        close_button.clicked.connect(self.reject)
+        buttons_layout.addWidget(close_button)
+        
+        layout.addLayout(buttons_layout)
+        
+        # Load passwords
+        self.load_passwords()
+
+    def load_passwords(self):
+        try:
+            with open("passwords.json", "r") as f:
+                self.passwords = json.load(f)
+            self.update_password_list()
+        except FileNotFoundError:
+            self.passwords = {}
+
+    def save_passwords(self):
+        with open("passwords.json", "w") as f:
+            json.dump(self.passwords, f, indent=4)
+
+    def save_password(self):
+        service = self.service_input.text()
+        username = self.username_input.text()
+        password = self.password_input.text()
+        
+        if service and username and password:
+            self.passwords[service] = {
+                'username': username,
+                'password': password,
+                'timestamp': datetime.now().isoformat()
+            }
+            self.save_passwords()
+            self.update_password_list()
+            self.clear_form()
+            QMessageBox.information(self, "Success", "Password saved successfully!")
+        else:
+            QMessageBox.warning(self, "Warning", "Please fill in all fields!")
+
+    def clear_form(self):
+        self.service_input.clear()
+        self.username_input.clear()
+        self.password_input.clear()
+
+    def show_password(self):
+        service = self.service_input.text()
+        if service in self.passwords:
+            password = self.passwords[service]['password']
+            QMessageBox.information(self, "Password", f"Password: {password}")
+        else:
+            QMessageBox.warning(self, "Warning", "No password found for this service!")
+
+    def update_password_list(self):
+        text = "Saved Passwords:\n\n"
+        for service, data in self.passwords.items():
+            text += f"Service: {service}\n"
+            text += f"Username: {data['username']}\n"
+            text += f"Saved Date: {data['timestamp']}\n"
+            text += "-" * 50 + "\n"
+        self.password_list.setPlainText(text)
+
+class PxrtalCryptPro(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("PxrtalCrypt")
+        self.setGeometry(100, 100, 900, 700)
+        self.setStyleSheet(STYLE)
+        
+        # Initialize cipher
+        self.cipher = Fernet(Fernet.generate_key())
+        
+        # Main widget and layout
+        central_widget = QWidget()
+        self.setCentralWidget(central_widget)
+        main_layout = QVBoxLayout(central_widget)
+        main_layout.setSpacing(20)
+        main_layout.setContentsMargins(20, 20, 20, 20)
+        
+        # Logo
+        logo_label = QLabel()
+        logo_pixmap = QPixmap("/usr/share/icons/securonis/pxrtaltext.png")
+        logo_label.setPixmap(logo_pixmap.scaled(400, 200, Qt.KeepAspectRatio))
+        logo_label.setAlignment(Qt.AlignCenter)
+        main_layout.addWidget(logo_label)
+        
+        # Separator line
+        separator = QFrame()
+        separator.setFrameShape(QFrame.HLine)
+        separator.setFrameShadow(QFrame.Sunken)
+        separator.setStyleSheet("background-color: #2d2d2d;")
+        main_layout.addWidget(separator)
+        
+        # Tab widget
+        self.tabs = QTabWidget()
+        self.tabs.setStyleSheet("""
+            QTabWidget::pane {
+                border: 1px solid #2d2d2d;
+                border-radius: 6px;
+            }
+        """)
+        main_layout.addWidget(self.tabs)
+        
+        # File Encryption Tab
+        file_tab = QWidget()
+        file_layout = QVBoxLayout(file_tab)
+        file_layout.setSpacing(15)
+        file_layout.setContentsMargins(15, 15, 15, 15)
+        
+        # File operations group
+        file_group = QGroupBox("File Operations")
+        file_group_layout = QVBoxLayout()
+        file_group_layout.setSpacing(10)
+        
+        self.file_status = QLabel("No file selected")
+        self.file_status.setStyleSheet("font-size: 14px;")
+        file_group_layout.addWidget(self.file_status)
+        
+        select_button = QPushButton("Select File")
+        select_button.setIcon(QIcon("folder.png"))
+        select_button.clicked.connect(self.select_file)
+        file_group_layout.addWidget(select_button)
+        
+        buttons_layout = QHBoxLayout()
+        buttons_layout.setSpacing(10)
+        
+        encrypt_button = QPushButton("Encrypt")
+        encrypt_button.setIcon(QIcon("lock.png"))
+        encrypt_button.clicked.connect(self.encrypt_file)
+        
+        decrypt_button = QPushButton("Decrypt")
+        decrypt_button.setIcon(QIcon("unlock.png"))
+        decrypt_button.clicked.connect(self.decrypt_file)
+        
+        secure_delete_button = QPushButton("Secure Delete")
+        secure_delete_button.setIcon(QIcon("delete.png"))
+        secure_delete_button.clicked.connect(self.secure_delete)
+        
+        buttons_layout.addWidget(encrypt_button)
+        buttons_layout.addWidget(decrypt_button)
+        buttons_layout.addWidget(secure_delete_button)
+        file_group_layout.addLayout(buttons_layout)
+        
+        file_group.setLayout(file_group_layout)
+        file_layout.addWidget(file_group)
+        
+        # Text Encryption Tab
+        text_tab = QWidget()
+        text_layout = QVBoxLayout(text_tab)
+        text_layout.setSpacing(15)
+        text_layout.setContentsMargins(15, 15, 15, 15)
+        
+        text_group = QGroupBox("Text Operations")
+        text_group_layout = QVBoxLayout()
+        text_group_layout.setSpacing(10)
+        
+        self.text_input = QTextEdit()
+        self.text_input.setPlaceholderText("Enter text to encrypt...")
+        self.text_input.setStyleSheet("""
+            QTextEdit {
+                min-height: 200px;
+                font-size: 14px;
+            }
+        """)
+        text_group_layout.addWidget(self.text_input)
+        
+        text_buttons_layout = QHBoxLayout()
+        text_buttons_layout.setSpacing(10)
+        
+        text_encrypt_button = QPushButton("Encrypt")
+        text_encrypt_button.setIcon(QIcon("lock.png"))
+        text_encrypt_button.clicked.connect(self.encrypt_text)
+        
+        text_decrypt_button = QPushButton("Decrypt")
+        text_decrypt_button.setIcon(QIcon("unlock.png"))
+        text_decrypt_button.clicked.connect(self.decrypt_text)
+        
+        text_buttons_layout.addWidget(text_encrypt_button)
+        text_buttons_layout.addWidget(text_decrypt_button)
+        text_group_layout.addLayout(text_buttons_layout)
+        
+        text_group.setLayout(text_group_layout)
+        text_layout.addWidget(text_group)
+        
+        # Password Manager Tab
+        password_tab = QWidget()
+        password_layout = QVBoxLayout(password_tab)
+        password_layout.setSpacing(15)
+        password_layout.setContentsMargins(15, 15, 15, 15)
+        
+        # Password list
+        self.password_list = QTextEdit()
+        self.password_list.setReadOnly(True)
+        self.password_list.setStyleSheet("""
+            QTextEdit {
+                background-color: #2d2d2d;
+                border: 1px solid #3d3d3d;
+                border-radius: 4px;
+                padding: 10px;
+                font-family: 'Consolas', monospace;
+                min-height: 200px;
+            }
+        """)
+        password_layout.addWidget(self.password_list)
+        
+        # Form layout
+        form_layout = QFormLayout()
+        self.service_input = QLineEdit()
+        self.username_input = QLineEdit()
+        self.password_input = QLineEdit()
+        self.password_input.setEchoMode(QLineEdit.Password)
+        
+        form_layout.addRow("Service:", self.service_input)
+        form_layout.addRow("Username:", self.username_input)
+        form_layout.addRow("Password:", self.password_input)
+        
+        password_layout.addLayout(form_layout)
+        
+        # Buttons
+        buttons_layout = QHBoxLayout()
+        
+        save_button = QPushButton("Save")
+        save_button.clicked.connect(self.save_password)
+        buttons_layout.addWidget(save_button)
+        
+        show_button = QPushButton("Show Password")
+        show_button.clicked.connect(self.show_password)
+        buttons_layout.addWidget(show_button)
+        
+        clear_button = QPushButton("Clear")
+        clear_button.clicked.connect(self.clear_password_form)
+        buttons_layout.addWidget(clear_button)
+        
+        password_layout.addLayout(buttons_layout)
+        
+        # Key Management Tab
+        key_tab = QWidget()
+        key_layout = QVBoxLayout(key_tab)
+        key_layout.setSpacing(15)
+        key_layout.setContentsMargins(15, 15, 15, 15)
+        
+        key_group = QGroupBox("Key Management")
+        key_group_layout = QVBoxLayout()
+        
+        # Key creation
+        key_create_layout = QHBoxLayout()
+        self.key_name_input = QLineEdit()
+        self.key_name_input.setPlaceholderText("Key name")
+        create_key_button = QPushButton("Create New Key")
+        create_key_button.clicked.connect(self.create_key)
+        key_create_layout.addWidget(self.key_name_input)
+        key_create_layout.addWidget(create_key_button)
+        key_group_layout.addLayout(key_create_layout)
+        
+        # Key list
+        self.key_list = QTextEdit()
+        self.key_list.setReadOnly(True)
+        self.key_list.setStyleSheet("""
+            QTextEdit {
+                background-color: #2d2d2d;
+                border: 1px solid #3d3d3d;
+                border-radius: 4px;
+                padding: 10px;
+                font-family: 'Consolas', monospace;
+                min-height: 200px;
+            }
+        """)
+        key_group_layout.addWidget(self.key_list)
+        
+        key_group.setLayout(key_group_layout)
+        key_layout.addWidget(key_group)
+        
+        # Steganography Tab
+        stego_tab = QWidget()
+        stego_layout = QVBoxLayout(stego_tab)
+        stego_layout.setSpacing(15)
+        stego_layout.setContentsMargins(15, 15, 15, 15)
+        
+        stego_group = QGroupBox("Steganography")
+        stego_group_layout = QVBoxLayout()
+        
+        # Image selection
+        image_select_layout = QHBoxLayout()
+        self.stego_image_input = QLineEdit()
+        self.stego_image_input.setReadOnly(True)
+        select_image_button = QPushButton("Select Image")
+        select_image_button.clicked.connect(self.select_stego_image)
+        image_select_layout.addWidget(self.stego_image_input)
+        image_select_layout.addWidget(select_image_button)
+        stego_group_layout.addLayout(image_select_layout)
+        
+        # Message input
+        message_layout = QHBoxLayout()
+        self.stego_message_input = QTextEdit()
+        self.stego_message_input.setPlaceholderText("Enter message to hide...")
+        message_layout.addWidget(self.stego_message_input)
+        stego_group_layout.addLayout(message_layout)
+        
+        # Buttons
+        stego_buttons_layout = QHBoxLayout()
+        hide_button = QPushButton("Hide Message")
+        hide_button.clicked.connect(self.hide_message)
+        extract_button = QPushButton("Extract Message")
+        extract_button.clicked.connect(self.extract_message)
+        stego_buttons_layout.addWidget(hide_button)
+        stego_buttons_layout.addWidget(extract_button)
+        stego_group_layout.addLayout(stego_buttons_layout)
+        
+        stego_group.setLayout(stego_group_layout)
+        stego_layout.addWidget(stego_group)
+        
+        # File Signing Tab
+        sign_tab = QWidget()
+        sign_layout = QVBoxLayout(sign_tab)
+        sign_layout.setSpacing(15)
+        sign_layout.setContentsMargins(15, 15, 15, 15)
+        
+        sign_group = QGroupBox("File Signing")
+        sign_group_layout = QVBoxLayout()
+        
+        # File selection
+        sign_file_layout = QHBoxLayout()
+        self.sign_file_input = QLineEdit()
+        self.sign_file_input.setReadOnly(True)
+        select_sign_file_button = QPushButton("Select File")
+        select_sign_file_button.clicked.connect(self.select_sign_file)
+        sign_file_layout.addWidget(self.sign_file_input)
+        sign_file_layout.addWidget(select_sign_file_button)
+        sign_group_layout.addLayout(sign_file_layout)
+        
+        # Key selection
+        sign_key_layout = QHBoxLayout()
+        self.sign_key_combo = QComboBox()
+        sign_key_layout.addWidget(QLabel("Signature Key:"))
+        sign_key_layout.addWidget(self.sign_key_combo)
+        sign_group_layout.addLayout(sign_key_layout)
+        
+        # Buttons
+        sign_buttons_layout = QHBoxLayout()
+        sign_button = QPushButton("Sign")
+        sign_button.clicked.connect(self.sign_file)
+        verify_button = QPushButton("Verify")
+        verify_button.clicked.connect(self.verify_signature)
+        sign_buttons_layout.addWidget(sign_button)
+        sign_buttons_layout.addWidget(verify_button)
+        sign_group_layout.addLayout(sign_buttons_layout)
+        
+        sign_group.setLayout(sign_group_layout)
+        sign_layout.addWidget(sign_group)
+        
+        # About Tab
+        about_tab = QWidget()
+        about_layout = QVBoxLayout(about_tab)
+        about_layout.setSpacing(15)
+        about_layout.setContentsMargins(15, 15, 15, 15)
+        
+        about_group = QGroupBox("About")
+        about_group_layout = QVBoxLayout()
+        about_group_layout.setSpacing(20)
+        
+        about_label = QLabel("""
+        <h2 style="color: #0078d4;">PxrtalCrypt</h2>
+        <p style="font-size: 14px;">Encryption toolkit</p>
+        <p style="font-size: 14px;">Version: 4.2</p>
+        <p style="font-size: 14px;">Developer: root0emir</p>
+        """)
+        about_label.setAlignment(Qt.AlignCenter)
+        about_group_layout.addWidget(about_label)
+        
+        logo_label = QLabel()
+        logo_pixmap = QPixmap("/usr/share/icons/securonis/pxrtal.png")
+        logo_label.setPixmap(logo_pixmap.scaled(150, 150, Qt.KeepAspectRatio))
+        logo_label.setAlignment(Qt.AlignCenter)
+        about_group_layout.addWidget(logo_label)
+        
+        about_group.setLayout(about_group_layout)
+        about_layout.addWidget(about_group)
+        
+        # Add tabs
+        self.tabs.addTab(file_tab, "File Encryption")
+        self.tabs.addTab(text_tab, "Text Encryption")
+        self.tabs.addTab(password_tab, "Password Manager")
+        self.tabs.addTab(key_tab, "Key Management")
+        self.tabs.addTab(stego_tab, "Steganography")
+        self.tabs.addTab(sign_tab, "File Signing")
+        self.tabs.addTab(about_tab, "About")
+        
+        # Anahtar ve şifre yönetimi
+        self.keys = {}
+        self.passwords = {}
+        self.load_keys()
+        self.load_passwords()
+        self.update_key_list()
+        self.update_password_list()
+
+    def create_key(self):
+        key_name = self.key_name_input.text()
+        if key_name:
+            key = Fernet.generate_key()
+            self.keys[key_name] = key.hex()
+            self.save_keys()
+            self.update_key_list()
+            self.key_name_input.clear()
+            QMessageBox.information(self, "Success", "Key created successfully!")
+        else:
+            QMessageBox.warning(self, "Warning", "Please enter a key name!")
+
+    def load_keys(self):
+        try:
+            with open("keys.json", "r") as f:
+                self.keys = json.load(f)
+        except FileNotFoundError:
+            self.keys = {}
+
+    def save_keys(self):
+        with open("keys.json", "w") as f:
+            json.dump(self.keys, f, indent=4)
+
+    def update_key_list(self):
+        text = "Saved Keys:\n\n"
+        for name, key in self.keys.items():
+            text += f"Key Name: {name}\n"
+            text += f"Key: {key[:20]}...\n"
+            text += "-" * 50 + "\n"
+        self.key_list.setPlainText(text)
+
+    def load_passwords(self):
+        try:
+            with open("passwords.json", "r") as f:
+                self.passwords = json.load(f)
+            self.update_password_list()
+        except FileNotFoundError:
+            self.passwords = {}
+
+    def save_passwords(self):
+        with open("passwords.json", "w") as f:
+            json.dump(self.passwords, f, indent=4)
+
+    def save_password(self):
+        service = self.service_input.text()
+        username = self.username_input.text()
+        password = self.password_input.text()
+        
+        if service and username and password:
+            self.passwords[service] = {
+                'username': username,
+                'password': password,
+                'timestamp': datetime.now().isoformat()
+            }
+            self.save_passwords()
+            self.update_password_list()
+            self.clear_password_form()
+            QMessageBox.information(self, "Success", "Password saved successfully!")
+        else:
+            QMessageBox.warning(self, "Warning", "Please fill in all fields!")
+
+    def show_password(self):
+        service = self.service_input.text()
+        if service in self.passwords:
+            password = self.passwords[service]['password']
+            QMessageBox.information(self, "Password", f"Password: {password}")
+        else:
+            QMessageBox.warning(self, "Warning", "No password found for this service!")
+
+    def clear_password_form(self):
+        self.service_input.clear()
+        self.username_input.clear()
+        self.password_input.clear()
+
+    def update_password_list(self):
+        text = "Saved Passwords:\n\n"
+        for service, data in self.passwords.items():
+            text += f"Service: {service}\n"
+            text += f"Username: {data['username']}\n"
+            text += f"Saved Date: {data['timestamp']}\n"
+            text += "-" * 50 + "\n"
+        self.password_list.setPlainText(text)
+
+    def select_file(self):
+        file_path, _ = QFileDialog.getOpenFileName(
+            self, "Select File", "", "All Files (*.*)"
+        )
+        if file_path:
+            self.selected_file = file_path
+            self.file_status.setText(f"Selected file: {os.path.basename(file_path)}")
+
+    def encrypt_file(self):
+        if not self.selected_file:
+            QMessageBox.warning(self, "Warning", "Please select a file first!")
+            return
+
+        try:
+            with open(self.selected_file, 'rb') as file:
+                data = file.read()
+            
+            encrypted = self.cipher.encrypt(data)
+            
+            output_path = f"{self.selected_file}.enc"
+            with open(output_path, 'wb') as file:
+                file.write(encrypted)
+            
+            QMessageBox.information(self, "Success", "File encrypted successfully!")
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Encryption error: {str(e)}")
+
+    def decrypt_file(self):
+        if not self.selected_file:
+            QMessageBox.warning(self, "Warning", "Please select a file first!")
+            return
+
+        try:
+            with open(self.selected_file, 'rb') as file:
+                encrypted = file.read()
+            
+            decrypted = self.cipher.decrypt(encrypted)
+            
+            output_path = self.selected_file.replace('.enc', '')
+            with open(output_path, 'wb') as file:
+                file.write(decrypted)
+            
+            QMessageBox.information(self, "Success", "File decrypted successfully!")
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Decryption error: {str(e)}")
+
+    def secure_delete(self):
+        if not self.selected_file:
+            QMessageBox.warning(self, "Warning", "Please select a file first!")
+            return
+
+        try:
+            # Overwrite file with random data
+            with open(self.selected_file, 'wb') as file:
+                file.write(os.urandom(os.path.getsize(self.selected_file)))
+            
+            # Delete file
+            os.remove(self.selected_file)
+            
+            QMessageBox.information(self, "Success", "File securely deleted!")
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Deletion error: {str(e)}")
+
+    def encrypt_text(self):
+        text = self.text_input.toPlainText()
+        if not text:
+            QMessageBox.warning(self, "Warning", "Please enter text to encrypt!")
+            return
+
+        try:
+            encrypted = self.cipher.encrypt(text.encode())
+            self.text_input.setPlainText(encrypted.decode())
+            QMessageBox.information(self, "Success", "Text encrypted successfully!")
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Encryption error: {str(e)}")
+
+    def decrypt_text(self):
+        text = self.text_input.toPlainText()
+        if not text:
+            QMessageBox.warning(self, "Warning", "Please enter text to decrypt!")
+            return
+
+        try:
+            decrypted = self.cipher.decrypt(text.encode())
+            self.text_input.setPlainText(decrypted.decode())
+            QMessageBox.information(self, "Success", "Text decrypted successfully!")
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Decryption error: {str(e)}")
+
+    def select_stego_image(self):
+        file_path, _ = QFileDialog.getOpenFileName(
+            self, "Select Image", "", "Image Files (*.png *.jpg *.jpeg *.bmp)"
+        )
+        if file_path:
+            self.stego_image_input.setText(file_path)
+
+    def hide_message(self):
+        image_path = self.stego_image_input.text()
+        message = self.stego_message_input.toPlainText()
+        
+        if not image_path or not message:
+            QMessageBox.warning(self, "Warning", "Please select an image and enter a message!")
+            return
+            
+        try:
+            from PIL import Image
+            img = Image.open(image_path)
+            
+            # Convert message to binary
+            binary_message = ''.join(format(ord(char), '08b') for char in message)
+            binary_message += '1111111111111110'  # Message end marker
+            
+            if len(binary_message) > img.width * img.height * 3:
+                QMessageBox.warning(self, "Warning", "Message is too long for the image!")
+                return
+            
+            pixels = img.load()
+            message_index = 0
+            
+            for i in range(img.width):
+                for j in range(img.height):
+                    pixel = list(pixels[i, j])
+                    
+                    for k in range(3):  # RGB channels
+                        if message_index < len(binary_message):
+                            pixel[k] = pixel[k] & ~1 | int(binary_message[message_index])
+                            message_index += 1
+                    
+                    pixels[i, j] = tuple(pixel)
+            
+            # Save
+            output_path = f"{os.path.splitext(image_path)[0]}_hidden.png"
+            img.save(output_path)
+            
+            QMessageBox.information(self, "Success", "Message hidden successfully!")
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Message hiding error: {str(e)}")
+
+    def extract_message(self):
+        image_path = self.stego_image_input.text()
+        
+        if not image_path:
+            QMessageBox.warning(self, "Warning", "Please select an image!")
+            return
+            
+        try:
+            from PIL import Image
+            img = Image.open(image_path)
+            
+            pixels = img.load()
+            binary_message = ""
+            
+            for i in range(img.width):
+                for j in range(img.height):
+                    pixel = pixels[i, j]
+                    
+                    for k in range(3):  # RGB channels
+                        binary_message += str(pixel[k] & 1)
+            
+            # Find message end marker
+            end_index = binary_message.find('1111111111111110')
+            if end_index == -1:
+                QMessageBox.warning(self, "Warning", "No hidden message found!")
+                return
+            
+            binary_message = binary_message[:end_index]
+            
+            # Convert binary to text
+            message = ""
+            for i in range(0, len(binary_message), 8):
+                byte = binary_message[i:i+8]
+                message += chr(int(byte, 2))
+            
+            self.stego_message_input.setPlainText(message)
+            QMessageBox.information(self, "Success", "Message extracted successfully!")
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Message extraction error: {str(e)}")
+
+    def select_sign_file(self):
+        file_path, _ = QFileDialog.getOpenFileName(self, "Select File", "", "All Files (*.*)")
+        if file_path:
+            self.sign_file_input.setText(file_path)
+
+    def sign_file(self):
+        file_path = self.sign_file_input.text()
+        key_name = self.sign_key_combo.currentText()
+        
+        if not file_path or not key_name:
+            QMessageBox.warning(self, "Warning", "Please select a file and key!")
+            return
+            
+        try:
+            from cryptography.hazmat.primitives import hashes
+            from cryptography.hazmat.primitives.asymmetric import padding
+            from cryptography.hazmat.primitives import serialization
+            
+            # Read file
+            with open(file_path, 'rb') as file:
+                data = file.read()
+            
+            # Create hash
+            digest = hashes.Hash(hashes.SHA256())
+            digest.update(data)
+            hash_value = digest.finalize()
+            
+            # Sign
+            key = self.keys[key_name]
+            signature = key.sign(
+                hash_value,
+                padding.PSS(
+                    mgf=padding.MGF1(hashes.SHA256()),
+                    salt_length=padding.PSS.MAX_LENGTH
+                ),
+                hashes.SHA256()
+            )
+            
+            # Save signature
+            signature_path = f"{file_path}.sig"
+            with open(signature_path, 'wb') as file:
+                file.write(signature)
+            
+            QMessageBox.information(self, "Success", "File signed successfully!")
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Signing error: {str(e)}")
+
+    def verify_signature(self):
+        file_path = self.sign_file_input.text()
+        key_name = self.sign_key_combo.currentText()
+        signature_path = f"{file_path}.sig"
+        
+        if not file_path or not key_name or not os.path.exists(signature_path):
+            QMessageBox.warning(self, "Warning", "Please check file, key and signature file!")
+            return
+            
+        try:
+            from cryptography.hazmat.primitives import hashes
+            from cryptography.hazmat.primitives.asymmetric import padding
+            from cryptography.hazmat.primitives import serialization
+            
+            # Read file
+            with open(file_path, 'rb') as file:
+                data = file.read()
+            
+            # Create hash
+            digest = hashes.Hash(hashes.SHA256())
+            digest.update(data)
+            hash_value = digest.finalize()
+            
+            # Read signature
+            with open(signature_path, 'rb') as file:
+                signature = file.read()
+            
+            # Verify
+            key = self.keys[key_name]
+            try:
+                key.verify(
+                    signature,
+                    hash_value,
+                    padding.PSS(
+                        mgf=padding.MGF1(hashes.SHA256()),
+                        salt_length=padding.PSS.MAX_LENGTH
+                    ),
+                    hashes.SHA256()
+                )
+                QMessageBox.information(self, "Success", "Signature verified!")
+            except:
+                QMessageBox.warning(self, "Warning", "Invalid signature!")
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Verification error: {str(e)}")
+
+class SplashScreen(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
+        
+      
+        screen = QApplication.primaryScreen().geometry()
+        x = (screen.width() - 500) // 2
+        y = (screen.height() - 400) // 2
+        self.setGeometry(x, y, 500, 400)
+        
+        # Make background fully transparent
+        self.setAttribute(Qt.WA_TranslucentBackground)
+        
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        
+       
+        splash_label = QLabel()
+        splash_pixmap = QPixmap("/usr/share/icons/securonis/splash.png")
+        splash_label.setPixmap(splash_pixmap.scaled(500, 400, Qt.KeepAspectRatio))
+        splash_label.setAlignment(Qt.AlignCenter)
+        layout.addWidget(splash_label)
+
+    def center(self):
+        screen = QApplication.primaryScreen().geometry()
+        size = self.geometry()
+        x = (screen.width() - size.width()) // 2
+        y = (screen.height() - size.height()) // 2
+        self.move(x, y)
+
+if __name__ == '__main__':
+    app = QApplication(sys.argv)
+    
+  
+    splash = SplashScreen()
+    splash.show()
+    
+ 
+    window = PxrtalCryptPro()
+    
+   
+    QTimer.singleShot(2000, lambda: (splash.close(), window.show()))
+    
+    sys.exit(app.exec_()) 

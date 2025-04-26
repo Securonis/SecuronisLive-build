@@ -1,0 +1,33 @@
+#!/bin/bash
+
+# Check if curl is installed
+if ! command -v curl &> /dev/null; then
+    echo "curl is not installed. Installing..."
+    sudo apt-get update && sudo apt-get install -y curl
+fi
+
+# Check if Tor is running
+if ! pgrep -x "tor" > /dev/null; then
+    echo "Tor is not running. Please start Tor service first."
+    exit 1
+fi
+
+# Check connection to Tor network
+echo "Checking connection to Tor network..."
+response=$(curl -s --socks5 localhost:9050 https://check.torproject.org/ 2>/dev/null)
+
+if echo "$response" | grep -q "Congratulations. This browser is configured to use Tor."; then
+    echo "Successfully connected to Tor network!"
+    
+    # Get Tor exit node IP
+    tor_ip=$(curl -s --socks5 localhost:9050 https://api.ipify.org)
+    echo "Tor Exit Node IP: $tor_ip"
+    
+    # Get Tor circuit information
+    echo -e "\nTor Circuit Information:"
+    echo "Control port is required for circuit information."
+    echo "Please enable ControlPort in your torrc file and restart Tor."
+else
+    echo "Not connected to Tor network!"
+    echo "Please check your Tor configuration and try again."
+fi

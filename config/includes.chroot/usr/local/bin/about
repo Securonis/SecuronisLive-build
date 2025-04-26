@@ -1,7 +1,0 @@
-#!/bin/bash
-
-# About Securonis Linux
-
-cat << EOF
-Securonis Linux is a Debian Trixie-based operating system designed for daily use with a focus on privacy and security.
-EOF

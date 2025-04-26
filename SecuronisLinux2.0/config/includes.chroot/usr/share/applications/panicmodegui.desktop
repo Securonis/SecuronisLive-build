@@ -1,0 +1,9 @@
+[Desktop Entry]
+Version=1.0
+Name=Panic Mode GUI
+Comment=Securonis Linux Panic Mode GUI Edition
+Exec=pkexec panicmodegui
+Icon=/usr/share/icons/securonis/panic.png
+Terminal=false 
+Type=Application
+Categories=Qt;System;

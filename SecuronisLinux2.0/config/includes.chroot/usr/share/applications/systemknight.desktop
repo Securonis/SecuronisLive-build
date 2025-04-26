@@ -1,0 +1,9 @@
+[Desktop Entry]
+Version=1.0
+Name=System Knight 
+Comment=System Knight simple tool for security scanning
+Exec=mate-terminal -- bash -c "sudo /usr/local/bin/systemknight; exec bash"
+Icon=/usr/share/icons/securonis/icon6.png
+Terminal=true
+Type=Application
+Categories=System;System;

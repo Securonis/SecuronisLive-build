@@ -1,0 +1,64 @@
+#!/bin/bash
+
+# securonis-info - Displays a detailed overview of Securonis GNU/Linux
+
+# Colors
+RED='\033[1;31m'
+GREEN='\033[1;32m'
+YELLOW='\033[1;33m'
+CYAN='\033[1;36m'
+WHITE='\033[1;37m'
+NC='\033[0m' # No Color
+
+clear
+echo -e "${CYAN}Securonis GNU/Linux - A Debian-Based Linux Distribution Focused on Privacy and Security${NC}"
+echo
+echo -e "${WHITE}Securonis GNU/Linux is a ${YELLOW}Debian-based${WHITE}, lightweight, and high-performance operating system designed with ${RED}privacy${WHITE} and ${RED}security${WHITE} as its top priorities."
+echo -e "It provides a fully anonymous experience by routing all internet traffic through ${YELLOW}Tor, I2P${WHITE}, and ${YELLOW}DNSCrypt${WHITE}, while also offering a range of advanced security features."
+echo
+
+echo -e "${GREEN}Key Features${NC}"
+echo -e "${YELLOW}● Complete System-Wide Anonymity${NC}"
+echo -e "  - Securonis Tor Router: Routes all traffic through Tor. Every application uses Tor automatically."
+echo -e "  - Securonis I2P Router: Enables private, decentralized I2P communication."
+echo -e "  - Preconfigured Firefox Browser: Optimized for Tor & I2P with privacy in mind."
+echo -e "  - DNSCrypt-Proxy: Encrypts DNS queries and prevents DNS leaks."
+
+echo
+echo -e "${YELLOW}● Advanced Security Mechanisms${NC}"
+echo -e "  - System Hardening Script: Secures kernel & system with SELinux, MACsec, and more."
+echo -e "  - Panic Mode: Emergency switch to lock down or wipe data."
+echo -e "  - Nuke2System: Securely wipes all data, destroying all traces."
+echo -e "  - Paranoia Mode: Blocks all network traffic instantly."
+
+echo
+echo -e "${YELLOW}● Custom-Built Privacy Tools${NC}"
+echo -e "  - PxrtalCrypt: A flexible encryption toolkit for files and text."
+echo -e "  - Securonis Notes: Secure AES-256 note-taking app."
+echo -e "  - Password Manager: For storing & managing credentials securely."
+echo -e "  - Seconionis: Background Tor routing service for Anonymous Mode."
+
+echo
+echo -e "${YELLOW}● Lightweight, Fast, and User-Friendly${NC}"
+echo -e "  - MATE Desktop: A clean, resource-efficient interface."
+echo -e "  - Calamares Installer: User-friendly and fast installation."
+echo -e "  - Live & Persistent Support: Run it live or install permanently."
+echo -e "  - Rolling Updates: Based on Debian Trixie with continuous updates."
+
+echo
+echo -e "${GREEN}Who is Securonis Linux for?${NC}"
+echo -e "  - Users who prioritize online anonymity"
+echo -e "  - Anyone who wants to browse without leaving a trace"
+echo -e "  - Journalists, activists, and researchers avoiding surveillance"
+echo -e "  - Users looking for a secure, lightweight Linux distribution"
+
+echo
+echo -e "${CYAN}Securonis GNU/Linux delivers a secure, fast, and flexible Linux experience while maximizing your privacy and security.${NC}"
+
+echo
+echo -e "${GREEN}Why I Created This${NC}"
+echo -e "My goal was to create a fast, minimal, secure Linux system with real-world daily usability. Many privacy OSes lack practicality."
+echo -e "Securonis removes that barrier—it's usable, installable, and Live-compatible. I built this for people who want security without headaches."
+echo -e "Designing it was a challenge, but it was worth it. I hope you enjoy using Securonis!"
+
+echo

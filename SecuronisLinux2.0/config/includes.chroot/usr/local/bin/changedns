@@ -1,0 +1,50 @@
+#!/bin/bash
+
+# Check if running as root
+if [ "$EUID" -ne 0 ]; then 
+    echo "Please run as root"
+    exit 1
+fi
+
+# Available DNS servers
+echo "Available DNS Servers:"
+echo "1) Google DNS (8.8.8.8, 8.8.4.4)"
+echo "2) Cloudflare DNS (1.1.1.1, 1.0.0.1)"
+echo "3) OpenDNS (208.67.222.222, 208.67.220.220)"
+echo "4) Custom DNS"
+
+read -p "Enter your choice (1-4): " choice
+
+case $choice in
+    1)
+        dns1="8.8.8.8"
+        dns2="8.8.4.4"
+        ;;
+    2)
+        dns1="1.1.1.1"
+        dns2="1.0.0.1"
+        ;;
+    3)
+        dns1="208.67.222.222"
+        dns2="208.67.220.220"
+        ;;
+    4)
+        read -p "Enter primary DNS: " dns1
+        read -p "Enter secondary DNS: " dns2
+        ;;
+    *)
+        echo "Invalid choice"
+        exit 1
+        ;;
+esac
+
+# Backup current resolv.conf
+cp /etc/resolv.conf /etc/resolv.conf.backup
+
+# Create new resolv.conf
+echo "nameserver $dns1" > /etc/resolv.conf
+echo "nameserver $dns2" >> /etc/resolv.conf
+
+echo "DNS servers have been changed to:"
+echo "Primary DNS: $dns1"
+echo "Secondary DNS: $dns2"

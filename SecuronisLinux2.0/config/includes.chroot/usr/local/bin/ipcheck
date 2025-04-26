@@ -1,0 +1,27 @@
+#!/bin/bash
+
+# Check if curl is installed
+if ! command -v curl &> /dev/null; then
+    echo "curl is not installed. Installing..."
+    sudo apt-get update && sudo apt-get install -y curl
+fi
+
+# Get local IP address
+local_ip=$(hostname -I | awk '{print $1}')
+echo "Local IP Address: $local_ip"
+
+# Get public IP address
+public_ip=$(curl -s https://api.ipify.org)
+echo "Public IP Address: $public_ip"
+
+# Get network interface information
+echo -e "\nNetwork Interface Information:"
+ip addr show | grep -w "inet" | grep -v "127.0.0.1"
+
+# Get default gateway
+echo -e "\nDefault Gateway:"
+ip route | grep default | awk '{print $3}'
+
+# Get DNS servers
+echo -e "\nDNS Servers:"
+cat /etc/resolv.conf | grep nameserver | awk '{print $2}'
