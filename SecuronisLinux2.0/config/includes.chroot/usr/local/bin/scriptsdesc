@@ -38,7 +38,6 @@ declare -A descriptions=(
   [symonitoring]="Script to monitor system resources and performance."
   [system-manager]="GUI tool for system info and updates."
   [systemhardening]="Allows kernel and network hardening with additional security tweaks."
-  [timespoof]="Script to spoof date and time settings." 
   [torifycheck]="Checks whether all traffic is routed through the Tor network."
   [update]="Securonis system update script."
   [vesperacrypt]="Simple tool for file encryption."
