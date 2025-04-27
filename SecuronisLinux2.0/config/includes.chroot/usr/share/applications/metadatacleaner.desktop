@@ -1,7 +1,7 @@
 [Desktop Entry]
 Version=1.0
 Name=Securonis Metadata Cleaner
-Comment=Metadata Cleaner for Securonis Linux
+Comment=A tool for removing metadata from files and photos
 Exec=metadatacleaner
 Icon=/usr/share/icons/securonis/metadata.png
 Terminal=false 

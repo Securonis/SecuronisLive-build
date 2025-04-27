@@ -16,3 +16,6 @@ thunderbird
 gnunet
 #gnunet-gtk
 fail2ban
+usbguard
+usbutils 
+udisks2

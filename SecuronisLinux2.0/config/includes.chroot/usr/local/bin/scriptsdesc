@@ -42,6 +42,7 @@ declare -A descriptions=(
   [update]="Securonis system update script."
   [vesperacrypt]="Simple tool for file encryption."
   [dnschanger]="GUI DNS changer tool"
+  [usbguardmanager]="A simple management tool for Usbguard"
 )
 
 echo "Securonis Linux Script-Tools Descriptions"

@@ -1,0 +1,40 @@
+#!/bin/bash
+# USBGuard Manager CLI
+
+show_menu() {
+    clear
+    echo "================ USBGuard Manager ================"
+    echo "1) Enable service and start now"
+    echo "2) Start service"
+    echo "3) Stop service"
+    echo "4) Restart service"
+    echo "5) Service status"
+    echo "6) List USB devices (lsusb)"
+    echo "7) List USB devices (usb-devices)"
+    echo "8) List blocked USB devices"
+    echo "9) Temporarily allow USB device"
+    echo "10) Permanently allow USB device"
+    echo "0) Exit"
+    echo "=================================================="
+}
+
+while true; do
+    show_menu
+    read -rp "Select an option: " opt
+    case "$opt" in
+        1) sudo systemctl enable usbguard.service --now && echo "usbguard service enabled and started." || echo "Failed to enable and start usbguard service." ;;
+        2) sudo systemctl start usbguard.service && echo "usbguard service started." || echo "Failed to start usbguard service." ;;
+        3) sudo systemctl stop usbguard.service && echo "usbguard service stopped." || echo "Failed to stop usbguard service." ;;
+        4) sudo systemctl restart usbguard.service && echo "usbguard service restarted." || echo "Failed to restart usbguard service." ;;
+        5) sudo systemctl status usbguard.service ;;
+        6) lsusb ;;
+        7) usb-devices ;;
+        8) sudo usbguard list-devices -b ;;
+        9) read -rp "Enter device ID to allow temporarily: " dev_id; sudo usbguard allow-device "${dev_id}" ;;
+        10) read -rp "Enter device ID to allow permanently: " dev_id; sudo usbguard allow-device "${dev_id}" -p ;;
+        0) echo "Exiting..."; exit 0 ;;
+        *) echo "Invalid option, please try again." ;;
+    esac
+    echo
+    read -rp "Press Enter to continue..." _
+done
