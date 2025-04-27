@@ -78,10 +78,8 @@ class LinuxSystemPanel:
             ("Disk Info", 4),
             ("Processes", 5),
             ("Services", 6),
-            ("System Logs", 7),
-            ("Power Info", 8),
-            ("System Monitor", 9),
-            ("About", 10)
+            ("Power Info", 7),
+            ("About", 8)
         ]
 
         
@@ -406,9 +404,7 @@ class LinuxSystemPanel:
                 self.show_disk_info,
                 self.show_processes,
                 self.show_services,
-                self.show_system_logs,
                 self.show_power_info,
-                self.show_system_monitor,
                 self.show_about
             ]
             
@@ -426,34 +422,6 @@ class LinuxSystemPanel:
         
         tk.Label(content, 
                 text="ABOUT THIS PANEL", 
-                font=self.title_font,
-                bg="#000000",
-                fg="#00ff00").pack(anchor="w", pady=(0, 20))
-        
-        about_text = """
-        Securonis Linux System Control Panel 
-        
-        Features:
-        - Real-time system monitoring
-        - Privacy status checking
-        - Network information display
-        - Disk usage visualization
-        - Process management
-        - System monitoring graphs
-        - Service management
-        - System logs viewer
-        - Power information
-        - Hardware details 
-
-        Developer: root0emir
-        Contact: root0emir@protonmail.com
-        
-        """.format(psutil_version=psutil.__version__)
-        
-        tk.Label(content, 
-                text=about_text, 
-                bg="#000000",
-                fg="#00ff00",
                 justify="left").pack(anchor="w")
 
     def get_system_info(self):
@@ -873,9 +841,26 @@ class LinuxSystemPanel:
 
     def check_tor(self):
         try:
+ 
             tor_status = subprocess.check_output(['systemctl', 'is-active', 'tor'], stderr=subprocess.PIPE, timeout=1).decode()
             if "active" in tor_status:
-                return "Active"
+               
+                try:
+                    import requests
+                    session = requests.session()
+                    session.proxies = {
+                        'http': 'socks5h://127.0.0.1:9050',
+                        'https': 'socks5h://127.0.0.1:9050'
+                    }
+                    response = session.get('https://check.torproject.org/api/ip', timeout=5)
+                    if response.status_code == 200:
+                        data = response.json()
+                        if data.get('IsTor', False):
+                            return "Active (Verified)"
+                        else:
+                            return "Active (Not Verified)"
+                except:
+                    return "Active (Connection Failed)"
             return "Inactive"
         except:
             return "Not Found"

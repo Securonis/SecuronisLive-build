@@ -16,9 +16,7 @@ import piexif
 import json
 import threading
 
-# Developed by root0emir 
-# Securonis MetadataCleaner 1.3
-
+# Theme styles for the Metadata Cleaner application
 
 # Dark Blue Theme (Default)
 DARK_BLUE = """
@@ -763,17 +761,14 @@ class MetadataCleanerThread(QThread):
                     
                     if self.clean_metadata:
                         try:
-                            # Create a new image without metadata
-                            new_img = Image.new(img.mode, img.size)
-                            new_img.putdata(list(img.getdata()))
-                            
-                            # Save the image with no metadata
-                            new_img.save(file_path, format=img.format, quality=95)
-                            
-                            metadata_cleaning = {
-                                "cleaned": True
-                            }
-                            
+                            # Remove metadata: use piexif.remove for JPEG/TIFF, fallback for others
+                            if img.format in ("JPEG", "TIFF"):
+                                piexif.remove(file_path)
+                            else:
+                                new_img = Image.new(img.mode, img.size)
+                                new_img.putdata(list(img.getdata()))
+                                new_img.save(file_path, format=img.format, quality=95)
+                            metadata_cleaning = {"cleaned": True}
                             self.status.emit(f"Metadata cleaned: {os.path.basename(file_path)}")
                         except Exception as clean_error:
                             metadata_cleaning = {
@@ -809,7 +804,7 @@ class MetadataCleanerThread(QThread):
 class MetadataCleaner(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Securonis Metadata Cleaner")
+        self.setWindowTitle("Metadata Cleaner")
         self.setGeometry(100, 100, 1000, 800)
         
         # Load settings
@@ -867,7 +862,10 @@ class MetadataCleaner(QMainWindow):
                 border-radius: 3px;
             }
             QCheckBox::indicator:checked {
-                image: url(/usr/share/icons/securonis/tick.png);
+                image: url(tick.png);
+            }
+            QCheckBox::indicator:unchecked {
+                image: none;
             }
             QCheckBox::indicator:hover {
                 background-color: rgba(76, 175, 80, 0.1);
@@ -889,7 +887,10 @@ class MetadataCleaner(QMainWindow):
                 border-radius: 3px;
             }
             QCheckBox::indicator:checked {
-                image: url(/usr/share/icons/securonis/tick.png);
+                image: url(tick.png);
+            }
+            QCheckBox::indicator:unchecked {
+                image: none;
             }
             QCheckBox::indicator:hover {
                 background-color: rgba(76, 175, 80, 0.1);
@@ -1031,8 +1032,8 @@ class MetadataCleaner(QMainWindow):
 
     def show_about(self):
         formats_str = ", ".join([fmt[1:] for fmt in SUPPORTED_FORMATS])
-        QMessageBox.about(self, "About Securonis Metadata Cleaner",
-                         "Securonis Metadata Cleaner v1.3\n\n"
+        QMessageBox.about(self, "About Metadata Cleaner",
+                         "Metadata Cleaner v1.3\n\n"
                          "A tool for cleaning metadata from image files.\n\n"
                          f"Supported formats: {formats_str}\n\n"
                          "Maximum file size: 100 MB\n\n"

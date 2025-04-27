@@ -1,7 +1,7 @@
 [Desktop Entry]
 Version=1.0
-Name=Panic Mode 
-Comment=Securonis system panic mode 
+Name=System Panic Mode
+Comment=Securonis Linux system panic mode 
 Exec=pkexec panicmodegui
 Icon=/usr/share/icons/securonis/panic.png
 Terminal=false 

@@ -19,7 +19,7 @@ declare -A descriptions=(
   [info]="Links to Securonis Linux forums and wiki."
   [install-nvidia-driver]="Allows you to install or manage NVIDIA drivers."
   [ipcheck]="Displays your IP address information."
-  [livesettings]="Allows changing keyboard and time settings in live mode."
+  [livesettings]="Allows changing keyboard in live mode."
   [metadatacleaner]="GUI tool to clean metadata from files."
   [netraffic]="Basic script to monitor and detect network traffic."
   [netxtrack]="GUI tool for network traffic monitoring and packet analysis."
@@ -37,11 +37,12 @@ declare -A descriptions=(
   [systemknight]="CLI system security scanning tool."
   [symonitoring]="Script to monitor system resources and performance."
   [system-manager]="GUI tool for system info and updates."
-  [systemhardening]="Allows kernel and network hardening with additional security tweaks."
+  [systemhardening]="Allows kernel and network hardening with additional security tweaks." 
   [torifycheck]="Checks whether all traffic is routed through the Tor network."
   [update]="Securonis system update script."
   [vesperacrypt]="Simple tool for file encryption."
   [dnschanger]="GUI DNS changer tool"
+  [nevermore]="Secure disk wiper script"
   [usbguardmanager]="A simple management tool for Usbguard"
 )
 

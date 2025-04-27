@@ -226,7 +226,7 @@ EOF
     mkdir -p /etc/modprobe.d
 
     # Strict module restrictions
-    cat <<EOF > /etc/modprobe.d/secure.conf
+    cat <<EOF > /etc.modprobe.d/secure.conf
 # Disable unused filesystems
 install cramfs /bin/false
 install freevxfs /bin/false
@@ -308,6 +308,11 @@ restore_default_kernel_settings() {
 # Enable AppArmor
 enable_apparmor() {
     echo "[+] Enabling AppArmor..."
+    if ! command -v apparmor_status &> /dev/null; then
+        echo "AppArmor is not installed! Installing AppArmor..."
+        apt-get update
+        apt-get install -y apparmor apparmor-utils
+    fi
     systemctl start apparmor
     systemctl enable apparmor
     if command -v aa-enforce &> /dev/null; then
@@ -339,13 +344,17 @@ enable_selinux() {
         sed -i 's/SELINUX=disabled/SELINUX=enforcing/' /etc/selinux/config
         echo "[✔] SELinux has been enabled!"
     else
-        echo "SELinux is not installed! Would you like to install SELinux? (y/n)"
-        read -r install_selinux
-        if [ "$install_selinux" == "y" ]; then
-            apt-get install -y selinux-utils selinux-basics
-            selinux-activate
-            echo "SELinux has been installed and activated. Please reboot for changes to take effect."
+        echo "SELinux is not installed! Installing SELinux..."
+        apt-get update
+        apt-get install -y selinux-utils selinux-basics
+        if [ -f /etc/selinux/config ]; then
+        setenforce 1
+        sed -i 's/SELINUX=disabled/SELINUX=enforcing/' /etc/selinux/config
+        else
+            echo "SELinux configuration file not found. Please check your installation."
+            return 1
         fi
+        echo "SELinux has been installed and activated. Please reboot for changes to take effect."
     fi
 }
 
