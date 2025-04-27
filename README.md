@@ -5,8 +5,11 @@ This is the live-build configuration for Securonis Linux. You can build Securoni
 
 
 Securonis GNU/Linux
+
 Version 2.0 
+
 Codename: Arise
+
 Based on: Debian Trixie (testing) 
 
 Contact the distribution developer: root0emir@protonmail.com
