@@ -260,43 +260,61 @@ warning() {
 	echo "\n[i] Please do not share your personal information with anyone"
 }
 
+# Function to start Tor service
+start_tor_service() {
+    echo " * Starting Tor service..."
+    systemctl start tor 2>/dev/null
+
+    # Check if Tor is running
+    if [ ! -e /var/run/tor/tor.pid ]; then
+        echo "\n[!] Tor failed to start! Please check the service logs.\n"
+        exit 1
+    else
+        echo " * Tor service started successfully."
+    fi
+}
+
+# Updated do_start function
 do_start() {
-	check_configs
-	check_root
+    check_configs
+    check_root
 
-	echo "\n[!] This script provides advanced privacy by forcing the entire system to operate through the Tor network using a transparent proxy. However, using the Tor browser while anonymous mode is active can lead to issues such as 'Tor over Tor', which may cause data leaks and security vulnerabilities. Therefore, using the Tor browser with torify is not recommended. Please be cautious.\n"
+    echo "\n[!] This script provides advanced privacy by forcing the entire system to operate through the Tor network using a transparent proxy. However, using the Tor browser while anonymous mode is active can lead to issues such as 'Tor over Tor', which may cause data leaks and security vulnerabilities. Therefore, using the Tor browser with torify is not recommended. Please be cautious.\n"
 
-	warning
+    warning
 
-	echo "\n[i] Starting anonymous mode"
+    echo "\n[i] Starting anonymous mode"
 
-	if ask "Do you want to kill running processes to prevent leaks?" Y; then
-		kill_process
-	else
-		echo
-	fi
+    if ask "Do you want to kill running processes to prevent leaks?" Y; then
+        kill_process
+    else
+        echo
+    fi
 
-	check_livecd
+    check_livecd
 
-	redirect_to_tor
+    redirect_to_tor
 
-	if ask "Do you want to change MAC address?" Y; then
-		manage_mac_address change
-	else
-		echo
-	fi
+    if ask "Do you want to change MAC address?" Y; then
+        manage_mac_address change
+    else
+        echo
+    fi
 
-	disable_ipv6
+    disable_ipv6
 
-	echo " * Restarting tor service"
-	systemctl restart tor 2>/dev/null
-	to_sleep
-	echo
+    # Start Tor service before restarting it
+    start_tor_service
 
-	if [ ! -e /var/run/tor/tor.pid ]; then
-		echo "\n[!] Tor is not running! Quitting...\n"
-		exit 1
-	fi
+    echo " * Restarting Tor service..."
+    systemctl restart tor 2>/dev/null
+    to_sleep
+    echo
+
+    if [ ! -e /var/run/tor/tor.pid ]; then
+        echo "\n[!] Tor is not running! Quitting...\n"
+        exit 1
+    fi
 }
 
 do_stop() {

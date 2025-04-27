@@ -1567,7 +1567,7 @@ class PanicModeApp(QMainWindow):
             ('Change DNS', self.change_dns),
             ('Change MAC Address', self.spoof_mac),
             ('Network Monitoring', self.monitor_network),
-            ('Security Scan', self.security_scan),
+            ('Open Ports', self.security_scan),  # Updated from 'Security Scan' to 'Open Ports'
             ('System Cleanup', self.clean_system)
         ]
         
