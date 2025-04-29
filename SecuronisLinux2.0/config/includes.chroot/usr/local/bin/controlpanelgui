@@ -416,13 +416,44 @@ class LinuxSystemPanel:
             messagebox.showerror("Error", f"Failed to switch tab: {str(e)}")
 
     def show_about(self):
-        """Show About tab"""
+        """Show About tab with application information."""
+        # Clear the main area
+        for widget in self.main_area.winfo_children():
+            widget.destroy()
+
+        # Create a new content frame
         content = tk.Frame(self.main_area, bg="#000000")
         content.pack(fill="both", expand=True, padx=25, pady=25)
-        
+
+        # Add title
         tk.Label(content, 
-                text="ABOUT THIS PANEL", 
-                justify="left").pack(anchor="w")
+                 text="ABOUT THIS PANEL", 
+                 font=self.title_font,
+                 bg="#000000",
+                 fg="#00ff00").pack(anchor="w", pady=(0, 20))
+
+        # Add information
+        about_text = (
+            "Secuonis Linux System Control Panel\n\n"
+            "Version: 1.4\n"
+            "Developer: root0emir\n\n"
+            "This control panel provides detailed system information, "
+            "hardware monitoring, privacy and security status, and more.\n\n"
+            "Features:\n"
+            "- System and hardware information\n"
+            "- Privacy and security checks\n"
+            "- Network and disk monitoring\n"
+            "- Process and service management\n"
+            "- Power and system logs\n\n"
+        )
+
+        tk.Label(content, 
+                 text=about_text, 
+                 font=self.normal_font,
+                 bg="#000000",
+                 fg="#00ff00",
+                 justify="left",
+                 anchor="w").pack(anchor="w", pady=(10, 0))
 
     def get_system_info(self):
         mem = psutil.virtual_memory()
@@ -1559,4 +1590,4 @@ class LinuxSystemPanel:
 if __name__ == "__main__":
     root = tk.Tk()
     app = LinuxSystemPanel(root)
-    root.mainloop() 
+    root.mainloop()
